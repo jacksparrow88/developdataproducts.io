@@ -1,0 +1,100 @@
+---
+title: "Coursera Developing Data Products"
+author: "Himanshu Singh"
+highlighter: highlight.js
+hitheme: tomorrow
+knit: slidify::knit2slides
+mode: selfcontained
+subtitle: Project Deck
+framework: io2012
+widgets: []
+---
+
+## US Rig Count Dataset Explorer  
+
+This Shiny App is for searching and visulizating US Rig Count information from year 1987 to 2015. The total number of records is 333, seperated across Onshore, Offshore, Crude Oil and Natura Gas Rigs.
+The dataset is from U.S. Energy Information Administration (http://www.eia.gov/dnav/ng/NG_ENR_DRILL_S1_M.htm).  
+
+Data Source: http://www.eia.gov/dnav/ng/NG_ENR_DRILL_S1_M.htm  
+  
+
+--- .class #id 
+
+# The Data for the Rig Counts
+```{r echo=FALSE}
+require(xlsx)
+require(base64enc)
+library(dplyr)
+library(DT)
+library(rCharts)
+library(reshape)
+library(knitr)
+library(stats)
+
+# Read data
+data <- read.xlsx("C:/Users/RS/Documents/develp/USRigCount.xlsx", sheetName = "Aggregated", header=TRUE)
+setnames(data, "Total.Rigs", "TotalNumberofRigs")
+setnames(data, "Crude.Oil", "CrudeOil")
+setnames(data, "Natural.Gas", "NaturalGas")
+data$Year<-as.POSIXlt(data$Date)$year+1900
+setnames(data, "Year", "Year")
+flatdata<-melt(data[,c("Date","Year","Onshore","Offshore","CrudeOil","NaturalGas")], id=c("Date","Year"))
+
+# Explorations and data checks
+head(data)
+```
+# Melted Flat Dataset
+
+```{r echo=FALSE}
+head(flatdata)
+```
+
+--- .class #id 
+
+## Total Number of Rig Counts in the US for each type
+
+```{r echo=FALSE, comment = NA, results = "asis"}
+  library(knitr)
+  RigsByYear <- nPlot(
+    value ~ Date,
+    group = 'variable',
+    data = flatdata,
+    #stackedAreaChart
+    #lineChart
+    type = "lineChart",
+    width = 900,
+    hight = 400
+  )
+  #RigsByYear$chart(margin = list(left = 100, top = 100))
+  RigsByYear$chart(color = c('purple', 'blue', 'green', 'red'))
+  RigsByYear$yAxis(axisLabel = "Rig Count per Category", width = 80)
+  RigsByYear$xAxis(axisLabel = "Date", width = 70)
+  RigsByYear$xAxis(tickFormat ="#! function(d) {return d3.time.format('%Y/%m')(new Date(d*1000*3600*24));} !#")
+  RigsByYear
+```
+
+--- .class #id 
+
+## Total Number of Rig Counts in the US
+
+```{r echo=FALSE, comment = NA, results = "asis"}
+library(rmarkdown)
+  library(knitr)
+require(rCharts)
+  RigsByYear <- nPlot(
+    TotalNumberofRigs ~ Date,
+    data = data,
+    #stackedAreaChart
+    #lineChart
+    type = "scatterChart",
+    width = 900,
+    height = 400
+  )
+  #RigsByYear$chart(margin = list(left = 100, top = 100))
+  RigsByYear$chart(color = c('purple', 'blue', 'green'))
+  RigsByYear$yAxis(axisLabel = "Total Rig Count", width = 100)
+  RigsByYear$xAxis(axisLabel = "Date", width = 100)
+  RigsByYear$xAxis(tickFormat ="#! function(d) {return d3.time.format('%Y/%m')(new Date(d*1000*3600*24));} !#")
+  RigsByYear  
+```
+
